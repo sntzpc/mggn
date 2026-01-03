@@ -322,6 +322,33 @@
   }
 
   // ---------------------------
+  // 05B) API POST (no-preflight) — seperti KLP1 AGRO
+  // ---------------------------
+  async function postToGAS(payloadObj){
+    const baseUrl = String(GAS_URL || '').trim();
+    if (!baseUrl) throw new Error('GAS URL belum dikonfigurasi.');
+
+    // form-urlencoded => simple request => biasanya aman di mobile (tanpa OPTIONS)
+    const body = new URLSearchParams();
+    body.set('data', JSON.stringify(payloadObj || {}));
+
+    const res = await fetch(baseUrl, {
+      method: 'POST',
+      body,              // <-- jangan set headers!
+      cache: 'no-store',
+      credentials: 'omit'
+    });
+
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      // GAS JSONP kadang balas JS kalau request salah, jadi tampilkan cuplikan
+      throw new Error('Response bukan JSON: ' + text.slice(0, 200));
+    }
+  }
+
+  // ---------------------------
   // 06) META LOAD/SAVE
   // ---------------------------
   async function loadMeta(){
@@ -800,7 +827,12 @@
     };
 
     try{
-      const resp = await apiJsonp(payload);
+      let resp;
+        try {
+          resp = await postToGAS(payload);    // ✅ POST dulu
+        } catch (e) {
+          resp = await apiJsonp(payload);     // fallback JSONP
+        }
       if (!resp || !resp.success) throw new Error(resp?.message || 'Sync gagal.');
 
       const okIds = new Set((resp.syncedIds || []).map(String));
@@ -830,7 +862,12 @@
   setPill('Pull...', 'warn');
 
   try{
-    const resp = await apiJsonp({ action:'getActualByNIK', sheetId, nik });
+    let resp;
+      try {
+        resp = await postToGAS({ action:'getActualByNIK', sheetId, nik }); // ✅ POST dulu
+      } catch (e) {
+        resp = await apiJsonp({ action:'getActualByNIK', sheetId, nik });  // fallback JSONP
+      }
     if (!resp || !resp.success) throw new Error(resp?.message || 'Pull gagal.');
 
     const items = resp.items || [];
@@ -991,7 +1028,12 @@
 
     $('#btnTestConn')?.addEventListener('click', async () => {
       try{
-        const resp = await apiJsonp({ action:'testConnection' });
+        let resp;
+          try {
+            resp = await postToGAS({ action:'testConnection' });   // ✅ utama: POST
+          } catch (e) {
+            resp = await apiJsonp({ action:'testConnection' });    // fallback: JSONP
+          }
         if (!resp?.success) throw new Error(resp?.message || 'Gagal test connection.');
         toast(resp.message || 'Connection successful', true);
       }catch(err){
