@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Program Magang Karyamas Plantation</title>
+
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Ctext y='54' x='2' font-size='56'%3E%F0%9F%8C%85%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header__inner">
+        <div class="badge">KMP</div>
+        <div>
+          <h1>Program Magang</h1>
+          <p>Karyamas Plantation — Laporan Harian Mentee</p>
+        </div>
+      </div>
+      <div id="statusPill" class="pill">Siap</div>
+    </header>
+
+    <!-- ================= MODAL: USER INFO ================= -->
+    <div class="modal" id="userInfoModal" aria-hidden="true">
+      <div class="modal-content">
+        <span class="close" data-close="userInfoModal">×</span>
+        <h2>Informasi Mentee</h2>
+        <p class="small muted">Data ini disimpan di perangkat (offline-first). Anda bisa ubah kapan saja.</p>
+
+        <div class="grid2">
+          <div class="form-group">
+            <label for="pesertaNik">NIK Peserta</label>
+            <input id="pesertaNik" type="text" inputmode="numeric" placeholder="contoh: 202612345" />
+          </div>
+
+          <div class="form-group">
+            <label for="menteeName">Nama Mentee</label>
+            <input id="menteeName" type="text" placeholder="contoh: Joko Widada" />
+          </div>
+
+          <div class="form-group">
+            <label for="mentorName">Nama Mentor</label>
+            <input id="mentorName" type="text" placeholder="contoh: Roy Martani" />
+          </div>
+
+          <div class="form-group">
+            <label for="deviceId">Device ID</label>
+            <input id="deviceId" type="text" disabled />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn secondary" id="btnResetProfile" type="button">Reset</button>
+          <button class="btn" id="saveUserInfo" type="button">Simpan</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL: PILIH TANGGAL WA ================= -->
+  <div class="modal" id="waDateModal" aria-hidden="true">
+    <div class="modal-content">
+      <span class="close" data-close="waDateModal">×</span>
+      <h2>Generate WA</h2>
+      <div class="form-group">
+        <label for="waDatePick">Tanggal Laporan</label>
+        <input id="waDatePick" type="date" />
+        <div class="small muted" id="waDateHint">-</div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn secondary" data-close="waDateModal" type="button">Batal</button>
+        <button class="btn accent" id="btnDoGenerateWA" type="button">Generate</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- ================== TABS =================== -->
+    <nav class="tabs" aria-label="Navigasi">
+      <button class="tab active" data-tab="laporan" type="button">Laporan</button>
+      <button class="tab" data-tab="history" type="button">History</button>
+      <button class="tab" data-tab="settings" type="button">Pengaturan</button>
+    </nav>
+
+    <!-- ================== TAB: LAPORAN =================== -->
+    <main class="tab-content active" id="laporan">
+      <h2>Laporan Harian</h2>
+
+      <section class="card">
+        <div class="card__title">Identitas</div>
+        <div class="grid2">
+          <div class="form-group">
+            <label for="estateUnit">Estate/Unit</label>
+            <input id="estateUnit" type="text" list="estateList" placeholder="contoh: SRIE" />
+            <datalist id="estateList">
+              <option value="SRIE"></option>
+              <option value="STWE"></option>
+              <option value="SJRE"></option>
+              <option value="SKSE"></option>
+            </datalist>
+          </div>
+
+          <div class="form-group">
+            <label for="bidangMagang">Bidang Magang</label>
+            <input id="bidangMagang" type="text" placeholder="contoh: ISPO" />
+          </div>
+
+          <div class="form-group">
+            <label for="tanggal">Tanggal</label>
+            <input id="tanggal" type="date" />
+          </div>
+
+          <div class="form-group">
+            <label>Ringkas</label>
+            <div class="small muted" id="profileSummary">-</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__title">Isi Laporan</div>
+
+        <div class="form-group">
+          <label for="kegiatanInti">Kegiatan Inti</label>
+          <textarea id="kegiatanInti" rows="3" placeholder="Tuliskan kegiatan utama hari ini..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="prosesMetode">Proses &amp; Metode</label>
+          <textarea id="prosesMetode" rows="3" placeholder="Bagaimana prosesnya? Metode/alat/checklist yang digunakan..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="hasilCapaian">Hasil/Capaian (Output)</label>
+          <textarea id="hasilCapaian" rows="3" placeholder="Apa outputnya? Data/temuan/hasil kerja..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="hambatanSolusi">Hambatan &amp; Solusi</label>
+          <textarea id="hambatanSolusi" rows="3" placeholder="Apa kendalanya dan bagaimana solusinya..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="pelajaranBaru">Pelajaran/Pengetahuan Baru</label>
+          <textarea id="pelajaranBaru" rows="3" placeholder="Apa pelajaran penting yang didapat..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="rencanaBesok">Rencana Besok</label>
+          <textarea id="rencanaBesok" rows="3" placeholder="Apa rencana kerja untuk besok..."></textarea>
+        </div>
+
+        <div class="actions">
+          <button class="btn secondary" id="btnResetForm" type="button">Reset Form</button>
+          <button class="btn" id="btnSave" type="button">Simpan</button>
+          <button class="btn accent" id="btnWA" type="button">Generate WA</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="form-group">
+          <label>Preview WA</label>
+          <textarea id="waPreview" rows="10" readonly placeholder="Klik 'Generate WA' untuk membuat format laporan."></textarea>
+          <div class="small muted">Tips: klik tombol Copy untuk menyalin teks.</div>
+          <div class="actions">
+            <button class="btn secondary" id="btnCopyWA" type="button">Copy</button>
+            <button class="btn secondary" id="btnOpenWA" type="button">Buka WhatsApp</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ================== TAB: HISTORY =================== -->
+    <section class="tab-content" id="history">
+      <h2>History</h2>
+
+      <section class="card">
+        <div class="card__title">Filter</div>
+        <div class="grid2">
+          <div class="form-group">
+            <label for="filterDateFrom">Dari Tanggal</label>
+            <input id="filterDateFrom" type="date" />
+          </div>
+          <div class="form-group">
+            <label for="filterDateTo">Sampai Tanggal</label>
+            <input id="filterDateTo" type="date" />
+          </div>
+          <div class="form-group">
+            <label for="filterText">Cari (isi laporan / bidang / estate)</label>
+            <input id="filterText" type="text" placeholder="ketik kata kunci..." />
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button class="btn secondary" id="btnApplyFilter" type="button">Terapkan Filter</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== STATISTIK ====== -->
+      <section class="card" id="historyStatsCard">
+        <div class="card__title">Statistik</div>
+        <div class="grid2">
+          <div class="form-group">
+            <label>Minggu Ini</label>
+            <div class="small muted" id="statWeek">-</div>
+          </div>
+          <div class="form-group">
+            <label>Bulan Ini</label>
+            <div class="small muted" id="statMonth">-</div>
+          </div>
+          <div class="form-group">
+            <label>YTD (s/d Hari Ini)</label>
+            <div class="small muted" id="statYtd">-</div>
+          </div>
+          <div class="form-group">
+            <label>Belum Sync</label>
+            <div class="small muted" id="statUnsynced">-</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__title">Daftar Laporan</div>
+
+        <div class="grid2" style="align-items:end">
+          <div>
+            <div class="small muted" id="historySummary">-</div>
+            <div class="small muted" id="historyPageInfo">-</div>
+          </div>
+
+          <div class="form-group">
+            <label for="historyPageSize">Tampilkan</label>
+            <select id="historyPageSize">
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="historyPager" class="actions" style="flex-wrap:wrap"></div>
+
+        <div id="historyList" class="list"></div>
+
+        <div class="actions">
+          <button class="btn secondary" id="btnPullServer" type="button">Tarik dari Server (by NIK)</button>
+          <button class="btn" id="btnSync" type="button">Sync ke Server</button>
+          <button class="btn secondary" id="btnExportXlsx" type="button">Export XLSX</button>
+          <button class="btn danger" id="btnClearReports" type="button">Hapus Data Laporan (Lokal)</button>
+        </div>
+
+        <div class="small muted">Sync menggunakan Google Apps Script. Jika koneksi lemah, coba ulangi.</div>
+      </section>
+      </section>
+
+    <!-- ================== TAB: SETTINGS =================== -->
+    <section class="tab-content" id="settings">
+      <h2>Pengaturan</h2>
+
+      <section class="card">
+      <div class="card__title">Koneksi Database Online</div>
+
+      <div class="small muted">
+        Gunakan tombol di bawah untuk memastikan aplikasi terhubung ke server.
+      </div>
+
+      <div class="actions" style="margin-top:10px">
+        <button class="btn secondary" id="btnTestConn" type="button">Test Connection</button>
+      </div>
+
+      <div id="settingsResult" class="result small">-</div>
+    </section>
+
+      <section class="card">
+        <div class="card__title">Data Lokal</div>
+        <div class="actions">
+          <button class="btn secondary" id="btnOpenProfile" type="button">Ubah Profil Mentee</button>
+          <button class="btn danger" id="btnClearLocal" type="button">Hapus Semua Data Lokal</button>
+        </div>
+        <div class="small muted">Hapus data lokal tidak menghapus data yang sudah tersimpan di server.</div>
+      </section>
+    </section>
+
+    <footer class="footer">
+      <div class="small muted">Offline-first • Internship Report</div>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
