@@ -217,3 +217,35 @@ textarea{resize:vertical;min-height:46px}
 .modal-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
 
 .footer{margin:18px 0 8px;text-align:center}
+
+/* =========================
+   BTN LOADING (spinner + anti double click)
+   ========================= */
+.btn.is-loading{
+  position: relative;
+  pointer-events: none;     /* anti double click */
+  opacity: .75;
+}
+
+.btn .btn__spinner{
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,.55);
+  border-top-color: rgba(255,255,255,0);
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: -2px;
+  animation: btnspin 0.8s linear infinite;
+}
+
+@keyframes btnspin{
+  to { transform: rotate(360deg); }
+}
+
+/* spinner pada tombol orange default: border putih sudah cocok,
+   tapi untuk tombol utama yang teksnya gelap, tetap terlihat */
+.btn:not(.secondary):not(.danger):not(.accent) .btn__spinner{
+  border-color: rgba(0,0,0,.35);
+  border-top-color: rgba(0,0,0,0);
+}

@@ -89,6 +89,44 @@
     console[ok ? 'log' : 'warn'](msg);
   }
 
+    // ---------------------------
+  // UI Helper: Button Loading (spinner + disable)
+  // ---------------------------
+  function setBtnLoading(btn, isLoading, loadingText='Memproses...'){
+    if (!btn) return;
+
+    if (isLoading){
+      // anti double click
+      if (btn.classList.contains('is-loading')) return;
+
+      btn.dataset._oldHtml = btn.innerHTML;
+      btn.dataset._oldDisabled = btn.disabled ? '1' : '0';
+
+      const safeText = escapeHtml(loadingText);
+      btn.innerHTML = `<span class="btn__spinner" aria-hidden="true"></span>${safeText}`;
+      btn.disabled = true;
+      btn.classList.add('is-loading');
+      btn.setAttribute('aria-busy', 'true');
+    } else {
+      if (btn.dataset._oldHtml !== undefined) btn.innerHTML = btn.dataset._oldHtml;
+      btn.classList.remove('is-loading');
+      btn.removeAttribute('aria-busy');
+      btn.disabled = (btn.dataset._oldDisabled === '1');
+      delete btn.dataset._oldHtml;
+      delete btn.dataset._oldDisabled;
+    }
+  }
+
+  // Wrapper aman: jalankan async action dengan loading otomatis
+  async function withBtnLoading(btn, loadingText, fn){
+    setBtnLoading(btn, true, loadingText);
+    try{
+      return await fn();
+    } finally {
+      setBtnLoading(btn, false);
+    }
+  }
+
   function copyToClipboard(text){
     return navigator.clipboard?.writeText(text).catch(() => {
       // fallback
@@ -1026,23 +1064,26 @@
   function initSettings(){
     // ✅ Tidak ada input gasUrl/sheetId karena sudah hardcode
 
-    $('#btnTestConn')?.addEventListener('click', async () => {
-      try{
-        let resp;
+        const btnTest = $('#btnTestConn');
+    btnTest?.addEventListener('click', async () => {
+      await withBtnLoading(btnTest, 'Testing...', async () => {
+        try{
+          let resp;
           try {
             resp = await postToGAS({ action:'testConnection' });   // ✅ utama: POST
           } catch (e) {
             resp = await apiJsonp({ action:'testConnection' });    // fallback: JSONP
           }
-        if (!resp?.success) throw new Error(resp?.message || 'Gagal test connection.');
-        toast(resp.message || 'Connection successful', true);
-      }catch(err){
-        toast(
-          (err.message || String(err)) +
-          '\n\nCatatan: Jika hanya error di mobile, biasanya karena GAS belum public (Anyone) atau domain script Google diblokir (ETP/AdBlock/Private DNS).',
-          false
-        );
-      }
+          if (!resp?.success) throw new Error(resp?.message || 'Gagal test connection.');
+          toast(resp.message || 'Connection successful', true);
+        }catch(err){
+          toast(
+            (err.message || String(err)) +
+            '\n\nCatatan: Jika hanya error di mobile, biasanya karena GAS belum public (Anyone) atau domain script Google diblokir (ETP/AdBlock/Private DNS).',
+            false
+          );
+        }
+      });
     });
 
     $('#btnClearLocal')?.addEventListener('click', async () => {
@@ -1166,8 +1207,20 @@
     });
 
     // sync/pull
-    $('#btnSync')?.addEventListener('click', () => syncUnsynced());
-    $('#btnPullServer')?.addEventListener('click', () => pullFromServer());
+    const btnSync = $('#btnSync');
+    const btnPull = $('#btnPullServer');
+
+    btnSync?.addEventListener('click', async () => {
+      await withBtnLoading(btnSync, 'Syncing...', async () => {
+        await syncUnsynced();
+      });
+    });
+
+    btnPull?.addEventListener('click', async () => {
+      await withBtnLoading(btnPull, 'Pulling...', async () => {
+        await pullFromServer();
+      });
+    });
 
     // export
     $('#btnExportXlsx')?.addEventListener('click', () => exportHistoryXlsx());
