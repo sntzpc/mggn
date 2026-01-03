@@ -37,6 +37,7 @@ body{
   justify-content:space-between;
   gap:12px;
 }
+
 .header__inner{display:flex;align-items:center;gap:14px}
 .badge{
   width:46px;height:46px;border-radius:14px;
