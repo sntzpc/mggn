@@ -249,35 +249,76 @@
   }
 
   // ---------------------------
-  // 05) API JSONP (anti-CORS)
-  // ---------------------------
-    function apiJsonp(payload){
-    const gasUrl = (GAS_URL || '').trim();
-    if (!gasUrl) return Promise.reject(new Error('GAS URL belum dikonfigurasi.'));
-    const cbName = '__cb_' + Math.random().toString(16).slice(2);
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        cleanup();
-        reject(new Error('Request timeout. Periksa koneksi / GAS URL.'));
-      }, 25000);
+// 05) API JSONP (anti-CORS)
+// ---------------------------
+  function apiJsonp(payload){
+    const baseUrl = String(GAS_URL || '').trim();
+    if (!baseUrl) return Promise.reject(new Error('GAS URL belum dikonfigurasi.'));
 
-      function cleanup(){
-        clearTimeout(timeout);
-        delete window[cbName];
-        script?.remove();
+    // Fallback domain (sering lebih "aman" di mobile / anti-tracking)
+    const candidates = [
+      baseUrl,
+      baseUrl.replace('https://script.google.com', 'https://script.googleusercontent.com'),
+      baseUrl.replace('http://script.google.com', 'https://script.googleusercontent.com'),
+    ].filter((v,i,a)=>v && a.indexOf(v)===i);
+
+    const dataStr = JSON.stringify(payload || {});
+    // cache-busting agar tidak kena cache agresif mobile
+    const nonce = Date.now().toString(36) + Math.random().toString(16).slice(2);
+
+    let lastErr = null;
+
+    const tryOne = (gasUrl) => {
+      const cbName = '__cb_' + Math.random().toString(16).slice(2);
+      let scriptEl = null;
+
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          cleanup();
+          reject(new Error('Request timeout. Periksa koneksi / akses GAS.'));
+        }, 20000);
+
+        function cleanup(){
+          clearTimeout(timeout);
+          try { delete window[cbName]; } catch(_) {}
+          if (scriptEl && scriptEl.parentNode) scriptEl.parentNode.removeChild(scriptEl);
+        }
+
+        window[cbName] = (resp) => { cleanup(); resolve(resp); };
+
+        const url = new URL(gasUrl);
+        url.searchParams.set('data', dataStr);
+        url.searchParams.set('callback', cbName);
+        url.searchParams.set('_', nonce); // cache bust
+
+        scriptEl = document.createElement('script');
+        scriptEl.async = true;
+        scriptEl.src = url.toString();
+
+        // bantu sebagian browser mobile
+        scriptEl.referrerPolicy = 'no-referrer';
+
+        scriptEl.onerror = () => {
+          cleanup();
+          reject(new Error('Gagal memuat response (script error). Domain mungkin diblokir / GAS tidak public.'));
+        };
+
+        (document.head || document.documentElement).appendChild(scriptEl);
+      });
+    };
+
+    // coba berurutan (primary lalu fallback)
+    return (async () => {
+      for (const u of candidates){
+        try{
+          const resp = await tryOne(u);
+          return resp;
+        }catch(err){
+          lastErr = err;
+        }
       }
-
-      window[cbName] = (resp) => { cleanup(); resolve(resp); };
-
-      const url = new URL(gasUrl);
-      url.searchParams.set('data', JSON.stringify(payload));
-      url.searchParams.set('callback', cbName);
-
-      const script = document.createElement('script');
-      script.src = url.toString();
-      script.onerror = () => { cleanup(); reject(new Error('Gagal memuat response (script error).')); };
-      document.body.appendChild(script);
-    });
+      throw lastErr || new Error('Gagal memuat response.');
+    })();
   }
 
   // ---------------------------
@@ -954,7 +995,11 @@
         if (!resp?.success) throw new Error(resp?.message || 'Gagal test connection.');
         toast(resp.message || 'Connection successful', true);
       }catch(err){
-        toast(err.message || String(err), false);
+        toast(
+          (err.message || String(err)) +
+          '\n\nCatatan: Jika hanya error di mobile, biasanya karena GAS belum public (Anyone) atau domain script Google diblokir (ETP/AdBlock/Private DNS).',
+          false
+        );
       }
     });
 
