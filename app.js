@@ -12,7 +12,7 @@
   // ---------------------------
 
   // ✅ HARDCODE (dikunci)
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbyKQAf_zdI33OF9vdB2yd7NkH00fGXy6w8eZWD8cUYpRRY0_foFMaW5RATmVj5DviYBpA/exec";
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbwxN_RsSpwEJ8pRotFQAjxibS0yQdYv-dqaP3RFp7t38JZrV2xH5g-My1eqgmAPZWomlA/exec";
   const SHEET_ID = "1xCSeBJvrvV8jDmVW-EX_oJIxTsWjrO1PgNcZq0cAlMw";
 
   const APP = {
