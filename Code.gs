@@ -13,7 +13,15 @@ function handleRequest(e) {
     if (e && e.parameter && e.parameter.data) {
       requestData = JSON.parse(e.parameter.data);
     } else if (e && e.postData && e.postData.getDataAsString()) {
-      requestData = JSON.parse(e.postData.getDataAsString());
+      var raw = e.postData.getDataAsString();
+
+      // Kalau body berupa "data=...." (form-urlencoded), ambil parameter data
+      if (raw && raw.indexOf('data=') === 0) {
+        var decoded = decodeURIComponent(raw.slice(5)); // setelah "data="
+        requestData = JSON.parse(decoded);
+      } else {
+        requestData = JSON.parse(raw);
+      }
     }
 
     // ✅ IMPORTANT: dukung JSONP callback dari URL (?callback=...)
